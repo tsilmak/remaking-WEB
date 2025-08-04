@@ -4,7 +4,7 @@ export interface MusicType {
   title: string;
   artists: Array<string>;
   duration: number;
-  hasVideoClipe: boolean;
+  hasMusicVideo: boolean;
   hasLyrics: boolean;
   audioUrl: string;
 }
@@ -17,7 +17,7 @@ export const musics: MusicType[] = [
     title: "My Life",
     artists: ["Billy Joel"],
     duration: 285,
-    hasVideoClipe: true,
+    hasMusicVideo: true,
     hasLyrics: true,
     audioUrl: "/music/Billy Joel - My Life.mp3",
   },
@@ -26,9 +26,9 @@ export const musics: MusicType[] = [
     photoUrl:
       "https://i.scdn.co/image/ab67616d00004851dcbca161a7787a3fe0cb429c",
     title: "City of Tears",
-    artists: ["Christopher Larkin, Amelia Jones"],
+    artists: ["Christopher Larkin", "Amelia Jones"],
     duration: 178,
-    hasVideoClipe: false,
+    hasMusicVideo: false,
     hasLyrics: false,
     audioUrl: "/music/City of Tears.mp3",
   },
@@ -39,7 +39,7 @@ export const musics: MusicType[] = [
     title: "Obstacles",
     artists: ["Syd Matters"],
     duration: 208,
-    hasVideoClipe: false,
+    hasMusicVideo: false,
     hasLyrics: true,
     audioUrl: "/music/Syd Matters - Obstacles.mp3",
   },

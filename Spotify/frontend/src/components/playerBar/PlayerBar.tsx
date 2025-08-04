@@ -16,7 +16,7 @@ import {
   ShuffleMusicIcon,
   StartMusicIcon,
   StopMusicIcon,
-  VideoclipeIcon,
+  MusicVideoIcon,
   VolumeMediumIcon,
   VolumeLowIcon,
   VolumeHighIcon,
@@ -159,6 +159,44 @@ const PlayerBar = () => {
     updateProgressFromMouse(e);
   };
 
+  const handleProgressBarKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!audioRef.current || !progressBarRef.current) return;
+
+    const audioDuration = audioRef.current.duration;
+    if (!audioDuration || isNaN(audioDuration)) return;
+
+    let newTime = currentTime;
+    const step = audioDuration / 20; // 5% of total duration
+
+    switch (e.key) {
+      case "ArrowLeft":
+        e.preventDefault();
+        newTime = Math.max(0, currentTime - step);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        newTime = Math.min(audioDuration, currentTime + step);
+        break;
+      case "Home":
+        e.preventDefault();
+        newTime = 0;
+        break;
+      case "End":
+        e.preventDefault();
+        newTime = audioDuration;
+        break;
+      default:
+        return;
+    }
+
+    try {
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    } catch (error) {
+      console.error("Failed to seek:", error);
+    }
+  };
+
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -253,6 +291,34 @@ const PlayerBar = () => {
   const handleVolumeMouseUp = React.useCallback(() => {
     setIsVolumeDragging(false);
   }, [setIsVolumeDragging]);
+
+  const handleVolumeKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    let newVolume = volume;
+    const step = 5; // 5% volume change
+
+    switch (e.key) {
+      case "ArrowLeft":
+        e.preventDefault();
+        newVolume = Math.max(0, volume - step);
+        break;
+      case "ArrowRight":
+        e.preventDefault();
+        newVolume = Math.min(100, volume + step);
+        break;
+      case "Home":
+        e.preventDefault();
+        newVolume = 0;
+        break;
+      case "End":
+        e.preventDefault();
+        newVolume = 100;
+        break;
+      default:
+        return;
+    }
+
+    handleVolumeChange(newVolume);
+  };
 
   const toggleMute = () => {
     if (isMuted) {
@@ -385,96 +451,132 @@ const PlayerBar = () => {
   };
 
   return (
-    <div className="px-4 py-4 bg-black w-full flex justify-center items-center ">
+    <div className="px-2 py-3 bg-black w-full flex justify-center items-center ">
       <audio ref={audioRef} src={music.audioUrl} preload="metadata" />
 
-      <div className="flex w-full h-full items-center gap-4">
+      <div className="flex w-full h-full items-center ">
         {/* Left - Music Info */}
         <div className="flex-1 text-center">
           {isHydrated && (
-            <div className="flex space-x-4 items-center">
+            <div className="flex space-x-4 items-center mx-2">
               <div className="relative">
                 <div className="group">
-                  <Image
-                    src={music.photoUrl}
-                    alt={"Music image cover"}
-                    width={56}
-                    height={56}
-                    className="rounded-sm"
-                    priority={true}
+                  <button
+                    aria-label="Toggle song expanded view"
                     onClick={() => setIsSongExpanded(!isSongExpanded)}
-                  />
+                    className="focus-visible-ring rounded-full"
+                    tabIndex={0}
+                  >
+                    <Image
+                      src={music.photoUrl}
+                      alt={"Music image cover"}
+                      width={56}
+                      height={56}
+                      className="rounded-sm"
+                      priority={true}
+                    />
+                  </button>
                   <div className="absolute top-1 right-1 z-10 group">
                     {isSongExpanded ? (
-                      <div
-                        onClick={() => setIsSongExpanded(false)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <ToolTip text="Collapse">
-                          <ArrowDown className="hover:scale-105 text-[#a2a2a2] hover:text-white h-6 w-6 bg-[#0c0a08]/70 hover:bg-[#0c0a08]/90 rounded-full px-1" />
-                        </ToolTip>
-                      </div>
+                      <ToolTip text="Collapse">
+                        <button
+                          aria-label="Collapse song view"
+                          onClick={() => setIsSongExpanded(false)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity hover:scale-105 text-[#a2a2a2] hover:text-white h-6 w-6 bg-[#0c0a08]/70 hover:bg-[#0c0a08]/90 rounded-full px-1 focus-visible-ring"
+                          tabIndex={0}
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </button>
+                      </ToolTip>
                     ) : (
-                      <div
-                        onClick={() => setIsSongExpanded(true)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <ToolTip text="Expand">
-                          <ArrowUp className="hover:scale-105 text-[#a2a2a2] hover:text-white h-6 w-6 bg-[#0c0a08]/70 hover:bg-[#0c0a08]/90 rounded-full px-1" />
-                        </ToolTip>
-                      </div>
+                      <ToolTip text="Expand">
+                        <button
+                          aria-label="Expand song view"
+                          onClick={() => setIsSongExpanded(true)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity hover:scale-105 text-[#a2a2a2] hover:text-white h-6 w-6 bg-[#0c0a08]/70 hover:bg-[#0c0a08]/90 rounded-full px-1 focus-visible-ring"
+                          tabIndex={0}
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                      </ToolTip>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col justify-center items-start">
-                <h2 className="text-white text-sm tracking-tight cursor-pointer hover:underline">
+              <div className="flex flex-col justify-center items-start  mr-5">
+                <button
+                  className="text-white text-sm font-[400] tracking-[-0.015em] cursor-pointer hover:underline focus-visible-ring rounded "
+                  tabIndex={0}
+                  aria-label={`Song title: ${music.title}`}
+                >
                   {music.title}
-                </h2>
-                <div className="text-[#999999] text-xs flex items-center gap-1 tracking-tight cursor-pointer  ">
-                  {music.hasVideoClipe && (
+                </button>
+                <div className="text-[#999999] tracking-[-0.020em] font-[500] text-xs flex items-center">
+                  {music.hasMusicVideo && (
                     <>
-                      <VideoclipeIcon className="h-3 w-3 text-[#b3b3b3] mr-1 " />
-                      <span className="hover:underline hover:text-[#ebebeb]">
-                        Videoclipe
-                      </span>
-                      <span>•</span>
+                      <div className="flex items-center gap-1 group cursor-pointer">
+                        <MusicVideoIcon className="h-3 w-3 text-[#b3b3b3] group-hover:text-[#ebebeb] " />
+                        <span
+                          className="focus-visible-ring rounded px-1 text-[#b3b3b3] group-hover:text-[#ebebeb] "
+                          tabIndex={0}
+                          role="text"
+                          aria-label="Music video available"
+                        >
+                          Music video
+                        </span>
+                      </div>
+                      <span className="cursor-default mr-1">•</span>
                     </>
                   )}
-                  <p className="hover:underline hover:text-[#ebebeb]">
-                    {music.artists.join(", ")}
-                  </p>
+                  <div className="flex items-center">
+                    {music.artists.map((artist, index) => (
+                      <React.Fragment key={index}>
+                        <button
+                          className="hover:underline hover:text-[#ebebeb] cursor-pointer focus-visible-ring rounded "
+                          tabIndex={0}
+                          aria-label={`Artist: ${artist}`}
+                        >
+                          {artist}
+                        </button>
+                        {index < music.artists.length - 1 && (
+                          <span className="text-[#999999] mr-0.5">,</span>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center">
-                {isSongLiked(music.id) ? (
-                  <ToolTip text="Remove from liked songs">
-                    <button
-                      onClick={() => toggleSongLiked(music.id)}
-                      className=" text-[#1ed760] transition-colors hover:scale-105 cursor-pointer active:text-[#159743] active:hover:scale-100"
-                    >
-                      <AddedMusicIcon className="h-4 w-4" />
-                    </button>
-                  </ToolTip>
-                ) : (
-                  <ToolTip text="Add to liked songs">
-                    <button
-                      onClick={() => toggleSongLiked(music.id)}
-                      className="text-[#b3b3b3] hover:text-white transition-colors hover:scale-105 cursor-pointer active:text-[#717171] active:hover:scale-100"
-                    >
-                      <AddMusicIcon className="h-4 w-4 " />
-                    </button>
-                  </ToolTip>
-                )}
-              </div>
+              {isSongLiked(music.id) ? (
+                <ToolTip text="Remove from liked songs">
+                  <button
+                    aria-label="Remove from liked songs"
+                    onClick={() => toggleSongLiked(music.id)}
+                    className="flex items-center justify-center h-8 rounded-lg text-[#1ed760] transition-colors hover:scale-105 cursor-pointer active:text-[#159743] active:hover:scale-100 focus-visible-ring"
+                    tabIndex={0}
+                  >
+                    <AddedMusicIcon className="h-4 w-4" />
+                  </button>
+                </ToolTip>
+              ) : (
+                <ToolTip text="Add to liked songs">
+                  <button
+                    aria-label="Add to liked songs"
+                    onClick={() => toggleSongLiked(music.id)}
+                    className="flex items-center justify-center h-8 rounded-lg text-[#b3b3b3] hover:text-white transition-colors hover:scale-105 cursor-pointer active:text-[#717171] active:hover:scale-100 focus-visible-ring"
+                    tabIndex={0}
+                  >
+                    <AddMusicIcon className="h-4 w-4 " />
+                  </button>
+                </ToolTip>
+              )}
             </div>
           )}
         </div>
 
         {/* Center - Player Controls */}
-        <div className="flex-1 text-center">
+        <div className="flex-1 text-center ">
           {/* Controls */}
-          <div className="flex items-center justify-center space-x-6">
+          <div className="flex items-center justify-center space-x-2 ">
             {isHydrated && (
               <ToolTip
                 text={`${
@@ -482,16 +584,20 @@ const PlayerBar = () => {
                 }`}
               >
                 <button
+                  aria-label={
+                    isShuffleEnabled ? "Disable shuffle" : "Enable shuffle"
+                  }
                   onClick={() => setIsShuffleEnabled(!isShuffleEnabled)}
-                  className={`hover:scale-105 transition-transform items-center flex justify-center cursor-pointer active:scale-95  ${
+                  className={`p-2 rounded-full hover:scale-105 transition-transform items-center flex justify-center cursor-pointer active:scale-95 focus-visible-ring ${
                     isShuffleEnabled
                       ? "text-[#1ed760] active:text-[#159743]"
                       : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-[#e5e5e5]"
                   }`}
+                  tabIndex={0}
                 >
                   <ShuffleMusicIcon className="h-4 w-4" />
                   {isShuffleEnabled && (
-                    <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
+                    <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
                       •
                     </span>
                   )}
@@ -500,29 +606,47 @@ const PlayerBar = () => {
             )}
 
             {!isHydrated && (
-              <ShuffleMusicIcon className={`h-4 w-4 text-[#2a2a2a]`} />
+              <div
+                className="p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+                aria-label="Shuffle (disabled)"
+                role="button"
+                aria-disabled="true"
+              >
+                <ShuffleMusicIcon className="h-4 w-4" />
+              </div>
             )}
 
             {isHydrated ? (
               <ToolTip text="Previous">
                 <button
+                  aria-label="Previous track"
                   onClick={goPrevious}
                   className={
-                    "hover:scale-105 transition-transform items-center flex justify-center cursor-pointer  active:scale-95 text-[#b3b3b3] hover:text-[#ebebeb] active:text-[#7e7e7e]"
+                    "p-2 hover:scale-105 transition-transform items-center flex justify-center cursor-pointer active:scale-95 text-[#b3b3b3] hover:text-[#ebebeb] active:text-[#7e7e7e] focus-visible-ring rounded-full "
                   }
+                  tabIndex={0}
                 >
                   <PreviousMusicIcon className={"h-4 w-4"} />
                 </button>
               </ToolTip>
             ) : (
-              <PreviousMusicIcon className="h-4 w-4 text-[#2a2a2a]" />
+              <div
+                className="p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+                aria-label="Previous (disabled)"
+                role="button"
+                aria-disabled="true"
+              >
+                <PreviousMusicIcon className="h-4 w-4" />
+              </div>
             )}
 
             {isHydrated && (
               <ToolTip text={`${isMusicPlaying ? "Pause" : "Play"}`}>
                 <button
-                  className="bg-white rounded-full w-8 h-8 flex items-center justify-center hover:scale-105 hover:bg-[#ebebeb] cursor-pointer transition-transform active:scale-95 text-black active:bg-[#b3b3b3]"
+                  aria-label={isMusicPlaying ? "Pause" : "Play"}
+                  className="mx-2 p-2 rounded-full bg-white w-8 h-8 flex items-center justify-center hover:scale-105 hover:bg-[#ebebeb] cursor-pointer transition-transform active:scale-95 text-black active:bg-[#b3b3b3] focus-visible-ring"
                   onClick={() => setIsMusicPlaying(!isMusicPlaying)}
+                  tabIndex={0}
                 >
                   {isMusicPlaying ? (
                     <StopMusicIcon className="h-4 w-4" />
@@ -533,25 +657,37 @@ const PlayerBar = () => {
               </ToolTip>
             )}
             {!isHydrated && (
-              <button className="bg-[#4d4d4d] rounded-full w-8 h-8 items-center flex justify-center text-black">
+              <div
+                className="bg-[#4d4d4d] p-2 rounded-full w-8 h-8 items-center flex justify-center text-black"
+                aria-label="Play button (disabled)"
+                role="button"
+                aria-disabled="true"
+              >
                 <StopMusicIcon className="h-4 w-4" />
-              </button>
+              </div>
             )}
             {isHydrated ? (
               <ToolTip text="Next">
                 <button
+                  aria-label="Next track"
                   onClick={goNext}
                   className={
-                    "hover:scale-105 transition-transform items-center flex justify-center cursor-pointer  active:scale-95 active:text-[#7e7e7e] text-[#b3b3b3] hover:text-[#ebebeb] hover-scale-105 "
+                    "p-2 rounded-full hover:scale-105 transition-transform items-center flex justify-center cursor-pointer active:scale-95 active:text-[#7e7e7e] text-[#b3b3b3] hover:text-[#ebebeb] hover-scale-105 focus-visible-ring"
                   }
+                  tabIndex={0}
                 >
                   <NextMusicIcon className="h-4 w-4" />
                 </button>
               </ToolTip>
             ) : (
-              <button>
-                <NextMusicIcon className={`h-4 w-4 text-[#2a2a2a]`} />
-              </button>
+              <div
+                className="p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+                aria-label="Next track (disabled)"
+                role="button"
+                aria-disabled="true"
+              >
+                <NextMusicIcon className="h-4 w-4" />
+              </div>
             )}
 
             {isHydrated && (
@@ -565,16 +701,25 @@ const PlayerBar = () => {
                 }
               >
                 <button
+                  aria-label={
+                    shuffleState.on
+                      ? "Enable repeat one"
+                      : shuffleState.off
+                        ? "Enable repeat"
+                        : "Disable repeat"
+                  }
                   onClick={cycleRepeatMode}
-                  className={`
+                  className={` p-2 rounded-full
       relative flex items-center justify-center
       hover:scale-105 active:scale-95 transition-transform cursor-pointer
+      focus-visible-ring
       ${
         shuffleState.on || shuffleState.onetime
           ? "text-[#1ed760] active:text-[#159743]"
           : "text-[#b3b3b3] active:text-[#7e7e7e]"
       }
     `}
+                  tabIndex={0}
                 >
                   {shuffleState.onetime ? (
                     <RepeatOneTimeMusicIcon className="h-4 w-4" />
@@ -583,7 +728,7 @@ const PlayerBar = () => {
                   )}
 
                   {(shuffleState.on || shuffleState.onetime) && (
-                    <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
+                    <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
                       •
                     </span>
                   )}
@@ -591,15 +736,21 @@ const PlayerBar = () => {
               </ToolTip>
             )}
             {!isHydrated && (
-              <button>
-                <RepeatMusicIcon className="h-4 w-4 text-[#2a2a2a]" />
-              </button>
+              <div
+                className="p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+                aria-label="Repeat (disabled)"
+                role="button"
+                aria-disabled="true"
+              >
+                <RepeatMusicIcon className="h-4 w-4" />
+              </div>
             )}
           </div>
 
           {/* Progress Bar  */}
           <div className="text-[#b3b3b3] flex items-center justify-between mt-2 text-xs w-full">
-            <div className="text-right">
+            {/* Current time - fixed width */}
+            <div className="text-right w-10 flex-shrink-0">
               {isHydrated ? formatTime(displayTime) : "-:--"}
             </div>
 
@@ -607,9 +758,17 @@ const PlayerBar = () => {
               ref={progressBarRef}
               className={`group relative mx-2 h-1 ${
                 isHydrated ? " bg-[#4c4c4c]" : " bg-[#4d4d4d]"
-              } rounded flex-1 cursor-pointer hover:h-1`}
+              } rounded flex-1 cursor-pointer hover:h-1 focus-visible-ring`}
               onMouseDown={handleMouseDown}
               onClick={handleProgressBarClick}
+              onKeyDown={handleProgressBarKeyDown}
+              tabIndex={isHydrated ? 0 : -1}
+              role="slider"
+              aria-label="Progress bar"
+              aria-valuemin={0}
+              aria-valuemax={duration || 0}
+              aria-valuenow={displayTime}
+              aria-valuetext={`${formatTime(displayTime)} of ${formatTime(duration)}`}
             >
               {/* Background track */}
               <div className="absolute inset-0 h-1 bg-[#4d4d4d] rounded transition-colors" />
@@ -631,70 +790,86 @@ const PlayerBar = () => {
               </div>
             </div>
 
-            <div
-              className="text-left"
+            {/* Duration/remaining time - fixed width */}
+            <button
+              aria-label="Toggle time display format"
+              className="text-left focus-visible-ring w-10 flex-shrink-0 rounded px-1"
               onClick={() => setIsShowRemainingTime(!isShowRemainingTime)}
+              tabIndex={isHydrated ? 0 : -1}
             >
               {isHydrated
                 ? isShowRemainingTime
                   ? formatTime(duration)
                   : "-" + formatTime(duration - displayTime)
                 : "-:--"}
-            </div>
+            </button>
           </div>
         </div>
 
         {/* Right - Volume and miscelncs */}
-        <div className="flex-1 text-center gap-4 flex items-center justify-end">
-          <ToolTip text="Now playing view">
-            <button
-              onClick={() => {
-                if (isPlayingView) {
-                  setIsPlayingView(false);
-                  setIsPlayingQueue(false);
-                  setIsShowingConnectedDevices(false);
-                } else {
-                  setIsPlayingView(true);
-                  setIsPlayingQueue(false);
-                  setIsShowingConnectedDevices(false);
-                }
-              }}
-              className={`relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer ${
-                isHydrated ? "" : "text-[#2a2a2a]"
-              } ${isPlayingView ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+        <div className="flex-1 text-center flex items-center justify-end ">
+          {isHydrated ? (
+            <ToolTip text="Now playing view">
+              <button
+                aria-label="Toggle now playing view"
+                onClick={() => {
+                  if (isPlayingView) {
+                    setIsPlayingView(false);
+                    setIsPlayingQueue(false);
+                    setIsShowingConnectedDevices(false);
+                  } else {
+                    setIsPlayingView(true);
+                    setIsPlayingQueue(false);
+                    setIsShowingConnectedDevices(false);
+                  }
+                }}
+                className={`p-2 rounded-full relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer focus-visible-ring ${isPlayingView ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+                tabIndex={0}
+              >
+                <PlayBackViewIcon className="h-4 w-4" />
+                {isPlayingView && (
+                  <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
+                    •
+                  </span>
+                )}
+              </button>
+            </ToolTip>
+          ) : (
+            <div
+              className="p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+              aria-label="Now playing view (disabled)"
+              role="button"
+              aria-disabled="true"
             >
               <PlayBackViewIcon className="h-4 w-4" />
-              {isPlayingView && (
-                <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
-                  •
-                </span>
-              )}
-            </button>
-          </ToolTip>
+            </div>
+          )}
           {isHydrated && (
             <ToolTip text="Lyrics" showTooltip={music.hasLyrics}>
               <button
+                aria-label={
+                  music.hasLyrics ? "Toggle lyrics" : "Lyrics not available"
+                }
                 onClick={() => {
                   if (music.hasLyrics) {
                     setIsPlayingLyrics(!isPlayingLyrics);
                   }
                 }}
-                className={`
-  relative flex items-center justify-center transition-transform
-  ${
-    music.hasLyrics
-      ? `cursor-pointer hover:scale-105 active:scale-95 ${
-          isPlayingLyrics
-            ? "text-[#1ed760] active:text-[#159743]"
-            : "text-[#b3b3b3] hover:text-white active:text-[#7e7e7e]"
-        }`
-      : "cursor-not-allowed text-[#323232]"
-  }
+                className={`p-2 rounded-full relative flex items-center justify-center transition-transform focus-visible-ring ${
+                  music.hasLyrics
+                    ? `cursor-pointer hover:scale-105 active:scale-95 ${
+                        isPlayingLyrics
+                          ? "text-[#1ed760] active:text-[#159743]"
+                          : "text-[#b3b3b3] hover:text-white active:text-[#7e7e7e]"
+                      }`
+                    : "cursor-not-allowed text-[#323232]"
+                }
 `}
+                tabIndex={music.hasLyrics ? 0 : -1}
               >
                 <LyricsIcon className="h-4 w-4" />
                 {isPlayingLyrics && (
-                  <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
+                  <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
                     •
                   </span>
                 )}
@@ -704,6 +879,7 @@ const PlayerBar = () => {
 
           <ToolTip text="Queue">
             <button
+              aria-label="Toggle queue view"
               onClick={() => {
                 if (isPlayingQueue) {
                   setIsPlayingView(false);
@@ -716,47 +892,63 @@ const PlayerBar = () => {
                   setIsShowingConnectedDevices(false);
                 }
               }}
-              className={`relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer ${isPlayingQueue ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+              className={`p-2 rounded-full relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer focus-visible-ring ${isPlayingQueue ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+              tabIndex={0}
             >
               <QueueIcon className="h-4 w-4" />
               {isPlayingQueue && (
-                <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
+                <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
                   •
                 </span>
               )}
             </button>
           </ToolTip>
 
-          <ToolTip text="Connect to a device">
-            <button
-              onClick={() => {
-                if (isShowingConnectedDevices) {
-                  setIsPlayingView(false);
-                  setIsPlayingQueue(false);
-                  setIsShowingConnectedDevices(false);
-                } else {
-                  setIsPlayingView(false);
-                  setIsPlayingQueue(false);
-                  setIsShowingConnectedDevices(true);
-                }
-              }}
-              className={`relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer ${isShowingConnectedDevices ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+          {isHydrated ? (
+            <ToolTip text="Connect to a device">
+              <button
+                aria-label="Toggle connect to device view"
+                onClick={() => {
+                  if (isShowingConnectedDevices) {
+                    setIsPlayingView(false);
+                    setIsPlayingQueue(false);
+                    setIsShowingConnectedDevices(false);
+                  } else {
+                    setIsPlayingView(false);
+                    setIsPlayingQueue(false);
+                    setIsShowingConnectedDevices(true);
+                  }
+                }}
+                className={`p-2 rounded-full relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer focus-visible-ring ${isShowingConnectedDevices ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+                tabIndex={0}
+              >
+                <ConnectDeviceIcon className="h-4 w-4" />
+                {isShowingConnectedDevices && (
+                  <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
+                    •
+                  </span>
+                )}
+              </button>
+            </ToolTip>
+          ) : (
+            <div
+              className="p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+              aria-label="Connect to device (disabled)"
+              role="button"
+              aria-disabled="true"
             >
               <ConnectDeviceIcon className="h-4 w-4" />
-              {isShowingConnectedDevices && (
-                <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
-                  •
-                </span>
-              )}
-            </button>
-          </ToolTip>
+            </div>
+          )}
 
           {/* Volume Module */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center">
             <ToolTip text={`${isMuted ? "Unmute" : "Mute"}`}>
               <button
+                aria-label={isMuted ? "Unmute" : "Mute"}
                 onClick={toggleMute}
-                className="hover:text-white transition-colors cursor-pointer active:scale-95 items-center flex justify-center"
+                className="p-2 rounded-full hover:text-white transition-colors cursor-pointer active:scale-95 items-center flex justify-center focus-visible-ring"
+                tabIndex={0}
               >
                 <VolumeIcon className="h-4 w-4 text-[#b3b3b3] hover:text-white active:text-[#b3b3b3]" />
               </button>
@@ -765,13 +957,19 @@ const PlayerBar = () => {
             <div className="flex items-center">
               <div
                 ref={volumeSliderRef}
-                className="relative w-23 h-1 bg-white/30 rounded cursor-pointer group"
+                className="relative w-23 h-1 bg-white/30 rounded cursor-pointer group focus-visible-ring"
                 onMouseDown={handleVolumeMouseDown}
+                onKeyDown={handleVolumeKeyDown}
+                tabIndex={0}
+                role="slider"
+                aria-label="Volume control"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={volume}
+                aria-valuetext={`${volume}% volume`}
               >
                 <div
-                  className={`absolute top-0 left-0 h-1 ${
-                    isVolumeDragging ? "bg-[#1ed760]" : "bg-white"
-                  }  hover:bg-[#1ed760] rounded`}
+                  className={`group-hover:bg-[#1ed760] absolute top-0 left-0 h-1 bg-white`}
                   style={{ width: `${volume}%` }}
                 >
                   <div
@@ -790,32 +988,51 @@ const PlayerBar = () => {
               text={`${isShowingMiniPlayer ? "Close Miniplayer" : "Open Miniplayer"}`}
             >
               <button
+                aria-label={
+                  isShowingMiniPlayer ? "Close miniplayer" : "Open miniplayer"
+                }
                 onClick={() => setIsShowingMiniPlayer(!isShowingMiniPlayer)}
-                className={`relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer ${isShowingMiniPlayer ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+                className={`ml-2 p-2 rounded-full relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer focus-visible-ring ${isShowingMiniPlayer ? "text-[#1ed760] active:text-[#159743]" : "text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white"}`}
+                tabIndex={0}
               >
                 <MiniReaderIcon className="h-4 w-4" />
                 {isShowingMiniPlayer && (
-                  <span className="absolute top-full mt-1 h-0 flex justify-center items-center ">
+                  <span className="absolute top-full mt-[-3px] h-0 flex justify-center items-center ">
                     •
                   </span>
                 )}
               </button>
             </ToolTip>
           )}
-          <ToolTip
-            text={`${isShowingFullscreen ? "Exit Full screen " : "Enter Full screen"}`}
-          >
-            <button
-              onClick={() => setIsShowingFullscreen(!isShowingFullscreen)}
-              className={`relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white `}
+          {isHydrated ? (
+            <ToolTip
+              text={`${isShowingFullscreen ? "Exit Full screen " : "Enter Full screen"}`}
             >
-              {isShowingFullscreen ? (
-                <ExitFullScreenIcon className="h-4 w-4" />
-              ) : (
-                <FullScreenIcon className="h-4 w-4" />
-              )}
-            </button>
-          </ToolTip>
+              <button
+                aria-label={
+                  isShowingFullscreen ? "Exit fullscreen" : "Enter fullscreen"
+                }
+                onClick={() => setIsShowingFullscreen(!isShowingFullscreen)}
+                className={`p-2 rounded-full relative flex items-center justify-center hover:scale-105 active:scale-95 transition-transform cursor-pointer text-[#b3b3b3] active:text-[#7e7e7e] hover:text-white focus-visible-ring`}
+                tabIndex={0}
+              >
+                {isShowingFullscreen ? (
+                  <ExitFullScreenIcon className="h-4 w-4" />
+                ) : (
+                  <FullScreenIcon className="h-4 w-4" />
+                )}
+              </button>
+            </ToolTip>
+          ) : (
+            <div
+              className="ml-2 p-2 rounded-full text-[#2a2a2a] items-center flex justify-center"
+              aria-label="Fullscreen (disabled)"
+              role="button"
+              aria-disabled="true"
+            >
+              <FullScreenIcon className="h-4 w-4" />
+            </div>
+          )}
         </div>
       </div>
     </div>

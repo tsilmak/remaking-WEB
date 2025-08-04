@@ -15,3 +15,21 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Focus visible utility class - only shows focus ring on keyboard navigation */
+.focus-visible-ring:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+  border-radius: 0;
+}
+
+/* Make focus ring rounded for buttons - more specific selectors */
+button.focus-visible-ring:focus-visible,
+.focus-visible-ring:focus-visible[role="button"] {
+  border-radius: 9999px;
+}
+
+/* Hide focus ring on mouse click */
+.focus-visible-ring:focus:not(:focus-visible) {
+  outline: none;
+}

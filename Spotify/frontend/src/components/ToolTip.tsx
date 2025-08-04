@@ -73,6 +73,29 @@ const ToolTip = ({ text, children, showTooltip = true }: Props) => {
     setIsVisible(false);
   };
 
+  const handleFocus = () => {
+    // Only show tooltip if showTooltip prop is true
+    if (!showTooltip) return;
+
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    // Show tooltip immediately on focus for better accessibility
+    setIsVisible(true);
+    setTimeout(calculatePosition, 10);
+  };
+
+  const handleBlur = () => {
+    // Clear the timeout if focus is lost
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setIsVisible(false);
+  };
+
   useEffect(() => {
     if (isVisible) {
       calculatePosition();
@@ -114,6 +137,8 @@ const ToolTip = ({ text, children, showTooltip = true }: Props) => {
       ref={containerRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
     >
       {children}
 
