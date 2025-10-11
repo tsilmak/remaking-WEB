@@ -12,6 +12,23 @@
   --glow-outer: rgba(226, 230, 233, 255);
 
   --border-color: #cfd9de;
+
+  /* Primary colors */
+  --primary-blue: #1d9bf0;
+  --primary-blue-hover: #1a8cd8;
+
+  /* Text colors */
+  --text-secondary: #536471;
+  --text-muted: #62656a;
+
+  /* Button colors */
+  --button-primary-bg: #171c20;
+  --button-primary-hover: #272c30;
+  --button-disabled-bg: #87898c;
+
+  /* Interactive states */
+  --hover-overlay: #e7e7e8;
+  --focus-border: #1d9bf0;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +44,12 @@
     --glow-outer: rgba(20, 20, 20, 0.6);
 
     --border-color: #333639;
+
+    /* Button colors - dark mode */
+    --button-disabled-bg: #787a7a;
+
+    /* Interactive states - dark mode */
+    --hover-overlay: rgba(128, 128, 128, 0.5);
   }
 }
 

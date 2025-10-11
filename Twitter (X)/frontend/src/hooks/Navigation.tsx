@@ -3,14 +3,13 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar/Sidebar";
 import MobileSidebar from "../components/Sidebar/Mobile/MobileSidebar";
-import LoadingOverlayXLogo from "../components/LoadingOverlayXLogo";
 import { useSelector } from "react-redux";
 import { RootState } from "@/app/lib/store";
 
 //  hook to detect screen size
 const useWindowSize = () => {
-  const [windowSize, setWindowSize] = useState<{ width: number | undefined }>({
-    width: undefined,
+  const [windowSize, setWindowSize] = useState<{ width: number }>({
+    width: typeof window !== "undefined" ? window.innerWidth : 1024,
   });
 
   useEffect(() => {
@@ -19,8 +18,6 @@ const useWindowSize = () => {
         width: window.innerWidth,
       });
     };
-
-    handleResize();
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -34,10 +31,6 @@ const Navigation = () => {
 
   const { width } = useWindowSize();
   const breakpoint = 640;
-
-  if (width === undefined) {
-    return <LoadingOverlayXLogo />;
-  }
 
   return width < breakpoint ? (
     <MobileSidebar />

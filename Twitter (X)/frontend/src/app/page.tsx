@@ -37,7 +37,7 @@ export default function Home() {
           </div>
 
           {/* Content Section */}
-          <div className=" mx-auto md:ml-24 text-center md:text-left md:mt-[-40px] w-full max-w-[320px] md:max-w-none px-2 md:px-0">
+          <div className=" mx-auto md:ml-24 text-center md:text-left md:mt-[-40px] w-full max-w-[320px] md:max-w-[400px] lg:max-w-[450px] xl:max-w-[525px] px-2 md:px-0">
             <h1 className="text-3xl sm:text-4xl md:text-4xl lg:text-6xl font-extrabold leading-tight">
               Happening now
             </h1>

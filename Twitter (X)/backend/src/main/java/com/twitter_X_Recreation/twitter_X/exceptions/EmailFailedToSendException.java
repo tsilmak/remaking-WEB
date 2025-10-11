@@ -4,4 +4,5 @@ public class EmailFailedToSendException extends RuntimeException {
     public EmailFailedToSendException(Exception e) {
     super("The email was not sent, failed to send email" + e);
     }
+
 }

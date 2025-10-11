@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "./StoreProvider";
 import { Analytics } from "@vercel/analytics/react";
+import CookiePopup from "@/components/common/CookiePopup";
 
 const fontSans = Inter({
   variable: "--font-sans",
@@ -40,6 +41,8 @@ export default function RootLayout({
             {modal}
             {children}
           </main>
+          {/* Global Cookie Popup */}
+          <CookiePopup />
         </StoreProvider>
       </body>
     </html>

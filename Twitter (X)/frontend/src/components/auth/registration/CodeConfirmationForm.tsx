@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { GoBackIcon, XLogo } from "@/utils/icons";
 
 import {
   useSendEmailConfirmationCodeMutation,
@@ -8,17 +7,22 @@ import {
 } from "@/app/lib/api/authApi";
 import PasswordUpdateForm from "./PasswordUpdateForm";
 import Input from "@/components/form/Input";
+import { extractApiError } from "@/utils/apiErrorHandler";
+import Modal from "@/components/common/Modal";
+import Button from "@/components/form/Button";
 
 type CodeConfirmationFormProps = {
   email: string;
   username: string;
   isModal: boolean;
+  emailFailedCode?: string;
 };
 
 const CodeConfirmationForm: React.FC<CodeConfirmationFormProps> = ({
   email,
   isModal,
   username,
+  emailFailedCode = "123456",
 }) => {
   const [
     resendEmailConfirmationCode,
@@ -67,14 +71,12 @@ const CodeConfirmationForm: React.FC<CodeConfirmationFormProps> = ({
     } catch (err) {
       console.error("Confirmation failed:", err);
 
-      // Check for specific error conditions first
-      if (
-        isError &&
-        error &&
-        "data" in error &&
-        typeof error.data === "string"
-      ) {
-        setErrorMessage(error.data);
+      // Extract API error message
+      const apiError = extractApiError(err);
+
+      if (apiError && apiError.data.error) {
+        // Use the error message from the API
+        setErrorMessage(apiError.data.error);
       } else {
         // Default error message
         setErrorMessage(
@@ -120,78 +122,63 @@ const CodeConfirmationForm: React.FC<CodeConfirmationFormProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50">
-      <div
-        className={`absolute inset-0 ${
-          isModal ? "dark:bg-black/50 bg-black/40" : "dark:bg-black bg-white"
-        } transition-colors duration-300`}
-      />
-      <div className="flex items-center justify-center h-full">
-        <div className="relative dark:bg-black bg-white md:border border-borderColor rounded-2xl w-full md:w-[600px] h-full md:h-[650px] md:max-w-2xl md:mx-4 z-10 flex flex-col justify-between">
-          <button
-            onClick={handleGoBack}
-            className="absolute top-2 left-2 rounded-full p-2 hover:bg-[#e7e7e8] dark:hover:bg-gray-800/50"
-          >
-            <GoBackIcon
-              width="20"
-              height="20"
-              fill="fill-black dark:fill-white"
-            />
-          </button>
-          <div className="flex justify-center pt-3 pb-8">
-            <XLogo width="32" height="32" fill="fill-black dark:fill-white" />
-          </div>
-          <div className="px-8 md:px-20 pb-72 md:pb-64 overflow-y-auto">
-            <h1 className="text-2xl md:text-3xl font-bold mb-8">
-              We sent you a code
-            </h1>
-            <p className="mb-4">Enter it below to verify {email}.</p>
-            <Input
-              inputId={"code"}
-              inputNamePlaceHolder={"Verification code"}
-              maxCharLength={6}
-              onChange={handleCodeChange}
-              isInputTextValid={!isInputError}
-              inputTextInvalidText={errorMessage}
-              isInputNumeric={true}
-            />
-            <div className="flex items-center text-sm mt-0.5 dark:text-neutral-400 ml-1">
-              <button
-                onClick={handleResendEmail}
-                disabled={isResendDisabled}
-                className={`hover:underline hover:text-blue-400 ${
-                  isResendDisabled
-                    ? "cursor-not-allowed opacity-80"
-                    : "cursor-pointer"
-                }`}
-              >
-                {isLoadingResendEmailConfirmationCode
-                  ? "Sending..."
-                  : resendText}
-              </button>
-              {isInCooldown && (
-                <span className="ml-2 text-neutral-500">
-                  ({formatCooldownTime()})
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="border-0 dark:bg-black md:py-[38px] rounded-2xl flex items-center justify-center">
-            <button
-              onClick={handleConfirmUserAccount}
-              disabled={!code || isLoading}
-              className={`px-[317px] mb-6 md:mb-0 md:px-[202px] font-bold py-3 rounded-full ${
-                !code || isLoading
-                  ? "bg-[#87898c] dark:bg-[#787a7a] text-white dark:text-black cursor-not-allowed"
-                  : "dark:bg-white dark:text-black bg-[#171c20] hover:bg-[#272c30] text-white dark:hover:bg-gray-200"
-              }`}
-            >
-              {isLoading ? "Loading..." : "Confirm"}
-            </button>
-          </div>
+    <Modal
+      isModal={isModal}
+      onClose={handleGoBack}
+      showCloseButton={false}
+      showBackButton={true}
+      contentClassName="px-8 md:px-20 pb-72 md:pb-64 overflow-y-auto"
+      footer={
+        <Button
+          onClick={handleConfirmUserAccount}
+          variant="primary"
+          size="large"
+          disabled={!code || isLoading}
+        >
+          {isLoading ? "Loading..." : "Confirm"}
+        </Button>
+      }
+    >
+      <h1 className="text-2xl md:text-3xl font-bold mb-8">
+        We sent you a code
+      </h1>
+      {emailFailedCode ? (
+        <div className="mb-4 p-4 bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-400 dark:border-yellow-700 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            Looks like the email was not sent. The code for registration is:{" "}
+            <strong>{emailFailedCode}</strong>
+          </p>
         </div>
+      ) : null}
+      <p className="mb-4">Enter it below to verify {email}.</p>
+      <Input
+        inputId={"code"}
+        inputNamePlaceHolder={"Verification code"}
+        maxCharLength={6}
+        onChange={handleCodeChange}
+        isInputTextValid={!isInputError}
+        inputTextInvalidText={errorMessage}
+        isInputNumeric={true}
+      />
+      <div className="flex items-center text-sm mt-0.5 dark:text-neutral-400 ml-1">
+        <button
+          onClick={handleResendEmail}
+          disabled={isResendDisabled}
+          className={`hover:underline hover:text-blue-400 ${
+            isResendDisabled
+              ? "cursor-not-allowed opacity-80"
+              : "cursor-pointer"
+          }`}
+        >
+          {isLoadingResendEmailConfirmationCode ? "Sending..." : resendText}
+        </button>
+        {isInCooldown && (
+          <span className="ml-2 text-neutral-500">
+            ({formatCooldownTime()})
+          </span>
+        )}
       </div>
-    </div>
+    </Modal>
   );
 };
 

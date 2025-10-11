@@ -15,6 +15,19 @@ export default {
         // BLACK THEME
         colorHover: "var(--color-hover)",
         primaryText: "var(--primary-text)",
+        // PRIMARY COLORS
+        primaryBlue: "var(--primary-blue)",
+        primaryBlueHover: "var(--primary-blue-hover)",
+        // TEXT COLORS
+        textSecondary: "var(--text-secondary)",
+        textMuted: "var(--text-muted)",
+        // BUTTON COLORS
+        buttonPrimaryBg: "var(--button-primary-bg)",
+        buttonPrimaryHover: "var(--button-primary-hover)",
+        buttonDisabledBg: "var(--button-disabled-bg)",
+        // INTERACTIVE STATES
+        hoverOverlay: "var(--hover-overlay)",
+        focusBorder: "var(--focus-border)",
       },
       keyframes: {
         "scale-up": {

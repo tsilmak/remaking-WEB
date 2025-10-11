@@ -25,12 +25,7 @@ export default function StoreProvider({
 
   return (
     <Provider store={storeRef.current}>
-      <PersistGate
-        loading={<LoadingOverlayXLogo />}
-        persistor={persistorRef.current}
-      >
-        {children}
-      </PersistGate>
+      <PersistGate persistor={persistorRef.current}>{children}</PersistGate>
     </Provider>
   );
 }

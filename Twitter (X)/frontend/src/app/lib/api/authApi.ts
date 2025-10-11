@@ -1,3 +1,4 @@
+import { ApiErrorResponse } from "@/@types";
 import { apiSlice } from "./apiSlice";
 
 interface User {
@@ -10,6 +11,12 @@ interface User {
   authorities: [roleId: string, authority: string];
   enabled: boolean;
 }
+interface RigsterResponse {
+  username: string;
+  name: string;
+  email: string;
+  birthDate: string;
+}
 
 interface RegisterRequest {
   name: string;
@@ -19,7 +26,7 @@ interface RegisterRequest {
 
 export const authApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    registerUser: builder.mutation<User, RegisterRequest>({
+    registerUser: builder.mutation<RigsterResponse, RegisterRequest>({
       query: (body) => ({
         url: "auth/register",
         method: "POST",

@@ -1,52 +1,150 @@
 import Navigation from "@/hooks/Navigation";
-import { XLogo } from "@/utils/icons";
-import React from "react";
+import React, { useRef, useState } from "react";
+import Image from "next/image";
+import Modal from "@/components/common/Modal";
+import Button from "@/components/form/Button";
+import ImagePositionEditor from "@/components/common/ImagePositionEditor";
+
+interface ImagePosition {
+  x: number;
+  y: number;
+  scale: number;
+}
 
 export const ProfilePictureFormModal: React.FC = () => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isPositioning, setIsPositioning] = useState(false);
+  const [tempImage, setTempImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageClick = () => {
+    if (!isPositioning) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setTempImage(imageUrl);
+      setIsPositioning(true);
+    }
+  };
+
+  const handleApplyPosition = (imageUrl: string, position: ImagePosition) => {
+    setSelectedImage(imageUrl);
+    setIsPositioning(false);
+    setTempImage(null);
+  };
+
+  const handleCancelPosition = () => {
+    setIsPositioning(false);
+    setTempImage(null);
+  };
+
   return (
     <div className="flex justify-center min-h-screen dark:bg-black">
       <div className="sm:flex max-w-screen-xl w-full relative">
         <Navigation />
         <div className="absolute inset-0 dark:bg-black/50 bg-black/40 transition-colors duration-300" />
-        <main className="ml-40 w-full flex items-center justify-center relative z-10">
-          <div className="dark:bg-black bg-white md:border border-borderColor rounded-2xl w-full md:w-[600px] h-full md:h-[650px] md:max-w-2xl md:mx-4 flex flex-col justify-between">
-            <div className="flex justify-center pt-3 pb-8">
-              <XLogo width="32" height="32" fill="fill-black dark:fill-white" />
-            </div>
-            {/* md:px-20 pb-72 md:pb-64  */}
-            <div className="px-8  overflow-y-auto">
-              <h1 className="text-2xl md:text-3xl font-bold mb-8">
-                Pick a profile picture
-              </h1>
-              <p className="leading-[0px]">
-                Have a favorite selfie? Upload it now.
-              </p>
-              <div className="flex justify-center items-center ">
-                <div className="w-44 h-44 bg-red-500 rounded-full my-24 cursor-pointer hover:bg-red-600"></div>
-              </div>
-            </div>
-
-            <div className="border-0 dark:bg-black md:py-[38px] rounded-2xl flex items-center justify-center">
-              <button
+        <main className="w-full flex items-center justify-center relative z-10">
+          <Modal
+            isModal={true}
+            onClose={() => {}}
+            showCloseButton={false}
+            contentClassName="px-8 overflow-y-auto"
+            footer={
+              <Button
                 onClick={() => console.log("Hhh")}
+                variant="primary"
+                size="large"
                 disabled={false}
-                className={`px-[317px] mb-6 md:mb-0 md:px-[202px] font-bold py-3 rounded-full ${
-                  false
-                    ? "bg-[#87898c] dark:bg-[#787a7a] text-white dark:text-black cursor-not-allowed"
-                    : "dark:bg-white dark:text-black bg-[#171c20] hover:bg-[#272c30] text-white dark:hover:bg-gray-200"
-                }`}
               >
-                {false ? "Loading..." : "Skip for now"}
-              </button>
+                Skip for now
+              </Button>
+            }
+          >
+            <h1 className="text-2xl md:text-3xl font-bold mb-6">
+              Pick a profile picture
+            </h1>
+            <p className="leading-[0px] text-textSecondary">
+              Have a favorite selfie? Upload it now.
+            </p>
+            <div className="flex justify-center items-center ">
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
+                className="hidden"
+              />
+              {selectedImage ? (
+                <img
+                  src={selectedImage}
+                  alt="Profile picture"
+                  onClick={handleImageClick}
+                  className="w-44 h-44 rounded-full my-24 cursor-pointer hover:opacity-80 border-borderColor border-2 object-cover"
+                />
+              ) : (
+                <Image
+                  src="/Twitter_default_profile_400x400.png"
+                  alt="Profile picture"
+                  width={176}
+                  height={176}
+                  onClick={handleImageClick}
+                  className="rounded-full my-24 cursor-pointer hover:opacity-80 border-borderColor border-2"
+                />
+              )}
             </div>
-          </div>
+          </Modal>
         </main>
       </div>
+
+      {/* Image Positioning Editor */}
+      {isPositioning && tempImage && (
+        <ImagePositionEditor
+          imageUrl={tempImage}
+          onApply={handleApplyPosition}
+          onCancel={handleCancelPosition}
+        />
+      )}
     </div>
   );
 };
 
 export const ProfilePictureFormNonModal: React.FC = () => {
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isPositioning, setIsPositioning] = useState(false);
+  const [tempImage, setTempImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageClick = () => {
+    if (!isPositioning) {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setTempImage(imageUrl);
+      setIsPositioning(true);
+    }
+  };
+
+  const handleApplyPosition = (imageUrl: string, position: ImagePosition) => {
+    setSelectedImage(imageUrl);
+    setIsPositioning(false);
+    setTempImage(null);
+  };
+
+  const handleCancelPosition = () => {
+    setIsPositioning(false);
+    setTempImage(null);
+  };
+
   return (
     <div className="flex justify-center min-h-screen dark:bg-black">
       <div
@@ -54,23 +152,66 @@ export const ProfilePictureFormNonModal: React.FC = () => {
       />
       <div className="z-30 sm:flex max-w-screen-xl w-full relative">
         <main className="w-full flex items-center justify-center relative z-10 mr-24">
-          <div className="dark:bg-black bg-white md:border border-borderColor rounded-2xl w-full md:w-[600px] h-full md:h-[650px] md:max-w-2xl md:mx-4 flex flex-col justify-between ">
-            <div className="flex justify-center pt-3 pb-8">
-              <XLogo width="32" height="32" fill="fill-black dark:fill-white" />
-            </div>
-            <div className="px-8 md:px-20 pb-72 md:pb-64 overflow-y-auto">
-              <h1 className="text-2xl md:text-3xl font-bold mb-8">
-                Pick a profile picture
-              </h1>
-              <p>Have a favorite selfie? Upload it now.</p>
-            </div>
+          <Modal
+            isModal={false}
+            onClose={() => {}}
+            showCloseButton={false}
+            contentClassName="px-8 overflow-y-auto"
+            footer={
+              <Button
+                onClick={() => console.log("Hhh")}
+                variant="primary"
+                size="large"
+                disabled={false}
+              >
+                Skip for now
+              </Button>
+            }
+          >
+            <h1 className="text-2xl md:text-3xl font-bold mb-6  ">
+              Pick a profile picture
+            </h1>
+            <p className="leading-[0px] text-textSecondary">
+              Have a favorite selfie? Upload it now.
+            </p>
             <div className="flex justify-center items-center ">
-              <div className="w-44 h-44 bg-red-500 rounded-full my-24 cursor-pointer hover:bg-red-600"></div>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/png, image/jpeg, image/jpg, image/gif, image/webp"
+                className="hidden"
+              />
+              {selectedImage ? (
+                <img
+                  src={selectedImage}
+                  alt="Profile picture"
+                  onClick={handleImageClick}
+                  className="w-44 h-44 rounded-full my-24 cursor-pointer hover:opacity-80 border-borderColor border-2 object-cover"
+                />
+              ) : (
+                <Image
+                  src="/Twitter_default_profile_400x400.png"
+                  alt="Profile picture"
+                  width={176}
+                  height={176}
+                  onClick={handleImageClick}
+                  className="rounded-full my-24 cursor-pointer hover:opacity-80 border-borderColor border-2"
+                />
+              )}
             </div>
-            <div className="border-0 dark:bg-black md:py-[38px] rounded-2xl flex items-center justify-center"></div>{" "}
-          </div>
+          </Modal>
         </main>
       </div>
+
+      {/* Image Positioning Editor */}
+      {isPositioning && tempImage && (
+        <ImagePositionEditor
+          imageUrl={tempImage}
+          onApply={handleApplyPosition}
+          onCancel={handleCancelPosition}
+        />
+      )}
     </div>
   );
 };

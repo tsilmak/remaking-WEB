@@ -4,15 +4,18 @@ import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.SignedJWT;
 import com.twitter_X_Recreation.twitter_X.dto.UpdatePhoneRequest;
+import com.twitter_X_Recreation.twitter_X.dto.UserResponseDTO;
 import com.twitter_X_Recreation.twitter_X.exceptions.*;
 import com.twitter_X_Recreation.twitter_X.models.ApplicationUser;
 import com.twitter_X_Recreation.twitter_X.models.RegistrationObject;
 import com.twitter_X_Recreation.twitter_X.services.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import sendinblue.ApiException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,12 +37,23 @@ public class AuthenticationController {
         return new ResponseEntity<String>("The email you provided is already in use", HttpStatus.CONFLICT);    }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody RegistrationObject registrationObject, HttpServletResponse response) {
+    public ResponseEntity<?> registerUser(@RequestBody RegistrationObject registrationObject, HttpServletResponse response, HttpServletRequest request) {
         try {
             ApplicationUser user = userService.registerUser(registrationObject, response);
-            return new ResponseEntity<>(user, HttpStatus.CREATED);
+            UserResponseDTO sanitizedUser = new UserResponseDTO(
+                    user.getUsername(),
+                    user.getName(),
+                    user.getEmail(),
+                    user.getBirthDate()
+            );
+            return new ResponseEntity<>(sanitizedUser, HttpStatus.CREATED);
         } catch (EmailAlreadyTakenException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new ApiExceptionHandler.ApiErrorException.Builder()
+                    .exception(e.getClass().getSimpleName())
+                    .error(e.getMessage())
+                    .path(request.getRequestURI())
+                    .build();
+
         }
     }
 
@@ -86,7 +100,7 @@ public class AuthenticationController {
         }
 
     @PostMapping("/email/code")
-    public ResponseEntity<?> createEmailVerificationCode(@RequestBody LinkedHashMap<String, String> body,
+    public ResponseEntity<?> createEmailVerificationCode(@RequestBody LinkedHashMap<String, String> body,HttpServletRequest request,
                                                              @CookieValue(name = "register_token", required = false) String token) {
         try {
             if (token == null || token.isEmpty()) {
@@ -112,10 +126,15 @@ public class AuthenticationController {
             Map<String, String> responseBody = new LinkedHashMap<>();
             responseBody.put("message", "Verification code generated and email sent successfully");
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
-            } catch (Exception e) {
-                return new ResponseEntity<>("Failed to process request: " + e.getMessage(), HttpStatus.BAD_REQUEST);
-            }
+        } catch (Exception e) {
+            throw new ApiExceptionHandler.ApiErrorException.Builder()
+                    .exception(e.getClass().getSimpleName())
+                    .error(e.getMessage())
+                    .path(request.getRequestURI())
+                    .build();
         }
+    }
+
 
     @ExceptionHandler({IncorrectVerificationCodeException.class})
     public ResponseEntity<String> incorrectCodeHandler() {
@@ -128,7 +147,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/email/code/verify")
-    public ResponseEntity<?> verifyEmailCode(@RequestBody LinkedHashMap<String, String> body,
+    public ResponseEntity<?> verifyEmailCode(@RequestBody LinkedHashMap<String, String> body, HttpServletRequest request,
                                              @CookieValue(name = "register_token", required = false) String token) {
         try {
             if (token == null || token.isEmpty()) {
@@ -156,9 +175,13 @@ public class AuthenticationController {
             responseBody.put("message", "Email verified successfully");
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-            }
+            throw new ApiExceptionHandler.ApiErrorException.Builder()
+                    .exception(e.getClass().getSimpleName())
+                    .error(e.getMessage())
+                    .path(request.getRequestURI())
+                    .build();
         }
+    }
 
     @PutMapping("/update/password")
     public ResponseEntity<?> updatePassword(@RequestBody LinkedHashMap<String, String> body, HttpServletResponse response,

@@ -28,7 +28,6 @@ import {
   JobsIcon,
   GrokIconSidebar,
 } from "@/utils/icons";
-import LoadingOverlayXLogo from "../LoadingOverlayXLogo";
 
 type SidebarProps = {
   username: string;
@@ -37,19 +36,15 @@ type SidebarProps = {
 const Sidebar = ({ username }: SidebarProps) => {
   const pathname = usePathname();
   const [isMoreOpen, setIsMoreOpen] = useState<boolean>(false);
-  const [windowHeight, setWindowHeight] = useState<number>(0);
-  const [showScrollbar, setShowScrollbar] = useState<boolean>(false);
-  // Add loading state
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [windowHeight, setWindowHeight] = useState<number>(
+    typeof window !== "undefined" ? window.innerHeight : 1080
+  );
+  const [showScrollbar, setShowScrollbar] = useState<boolean>(
+    typeof window !== "undefined" ? window.innerHeight <= 540 : false
+  );
 
-  // Effect to get and update window height
+  // Effect to update window height on resize
   useEffect(() => {
-    // Set initial height
-    setWindowHeight(window.innerHeight);
-    setShowScrollbar(window.innerHeight <= 540);
-    // Set loading to false once measurements are complete
-    setIsLoading(false);
-
     // Update height on resize
     const handleResize = () => {
       const height = window.innerHeight;
@@ -154,11 +149,6 @@ const Sidebar = ({ username }: SidebarProps) => {
   const visibleNavItems = navItems.filter(
     (item) => windowHeight >= item.minHeight
   );
-
-  // Show loading state while measurements are being calculated
-  if (isLoading) {
-    return <LoadingOverlayXLogo />;
-  }
 
   return (
     <nav className="fixed h-screen w-20 xl:w-64 bg-white text-black  dark:bg-black dark:text-white flex flex-col items-center border-r border-borderColor">
