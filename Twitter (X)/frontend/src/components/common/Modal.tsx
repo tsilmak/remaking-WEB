@@ -55,7 +55,9 @@ const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 z-50" onKeyDown={handleKeyDown}>
       <div
         className={`absolute inset-0 ${
-          isModal ? "dark:bg-black/50 bg-black/40" : "dark:bg-black bg-white"
+          isModal
+            ? "dark:bg-slate-600/30 bg-black/40"
+            : "dark:bg-black bg-white"
         } transition-colors duration-300`}
         onClick={(e) => e.stopPropagation()}
         aria-hidden="true"
@@ -68,7 +70,7 @@ const Modal: React.FC<ModalProps> = ({
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="absolute top-4 left-2 rounded-full p-2.5 hover:bg-hoverOverlay dark:hover:bg-gray-800/50"
+              className="absolute top-2 left-2 rounded-full p-2 hover:bg-hoverOverlay dark:hover:bg-gray-800/50"
             >
               <CloseIcon
                 width="20"

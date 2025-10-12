@@ -11,15 +11,80 @@ import Button from "@/components/form/Button";
 import { ApiExceptions } from "@/@types";
 import Modal from "@/components/common/Modal";
 
+/**
+ * SignUpForm component
+ * @param isModal - Determines the rendering context:
+ *   - true: User navigated from root page (intercepting route), displays as modal with transparent background overlay
+ *   - false: User accessed directly via URL, page refresh, browser search, or external link - displays as full page
+ */
 export default function SignUpForm({ isModal = false }) {
   const router = useRouter();
 
   React.useEffect(() => {
+    // Update page metadata dynamically (required for modal since intercepting routes don't update metadata)
+    const originalTitle = document.title;
+    const originalDescription = document
+      .querySelector('meta[name="description"]')
+      ?.getAttribute("content");
+    const originalOgTitle = document
+      .querySelector('meta[property="og:title"]')
+      ?.getAttribute("content");
+    const originalOgDescription = document
+      .querySelector('meta[property="og:description"]')
+      ?.getAttribute("content");
+
+    document.title = "Sign up for X / X";
+
+    let descriptionMeta = document.querySelector('meta[name="description"]');
+    if (!descriptionMeta) {
+      descriptionMeta = document.createElement("meta");
+      descriptionMeta.setAttribute("name", "description");
+      document.head.appendChild(descriptionMeta);
+    }
+    descriptionMeta.setAttribute(
+      "content",
+      "From breaking news and entertainment to sports and politics, get the full story with all the live commentary."
+    );
+
+    let ogTitleMeta = document.querySelector('meta[property="og:title"]');
+    if (!ogTitleMeta) {
+      ogTitleMeta = document.createElement("meta");
+      ogTitleMeta.setAttribute("property", "og:title");
+      document.head.appendChild(ogTitleMeta);
+    }
+    ogTitleMeta.setAttribute("content", "Sign up for X / X");
+
+    let ogDescriptionMeta = document.querySelector(
+      'meta[property="og:description"]'
+    );
+    if (!ogDescriptionMeta) {
+      ogDescriptionMeta = document.createElement("meta");
+      ogDescriptionMeta.setAttribute("property", "og:description");
+      document.head.appendChild(ogDescriptionMeta);
+    }
+    ogDescriptionMeta.setAttribute(
+      "content",
+      "From breaking news and entertainment to sports and politics, get the full story with all the live commentary."
+    );
+
     if (isModal) {
       document.documentElement.style.overflow = "hidden";
       document.documentElement.style.overscrollBehaviorY = "none";
     }
+
     return () => {
+      // Restore original metadata
+      document.title = originalTitle || "X";
+      if (descriptionMeta && originalDescription) {
+        descriptionMeta.setAttribute("content", originalDescription);
+      }
+      if (ogTitleMeta && originalOgTitle) {
+        ogTitleMeta.setAttribute("content", originalOgTitle);
+      }
+      if (ogDescriptionMeta && originalOgDescription) {
+        ogDescriptionMeta.setAttribute("content", originalOgDescription);
+      }
+
       document.documentElement.style.overflow = "";
       document.documentElement.style.overscrollBehaviorY = "";
     };
