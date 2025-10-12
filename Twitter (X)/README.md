@@ -1,16 +1,9 @@
-# Remaking the Twitter X UI
-
-##  Auth Page  
-
----
-
-### 🖥️ Desktop View
-
-**Original (Twitter):**  
-![image](https://github.com/user-attachments/assets/5d3e03bc-4d37-4d2f-9da6-c8e66812b005)
+# System Design
+<img width="1171" height="1452" alt="423226601-0534f1ea-5ea9-42ea-b9cf-1b83f762022e" src="https://github.com/user-attachments/assets/e1a68326-73c0-4b1d-b84a-36c811d074ba" />
 
 
-**Remake (Mine):**  
-![image](https://github.com/user-attachments/assets/4db416a0-dd19-4859-9817-e92cdcec0b47)
+##  Design Screenshots ->   
 
----
+
+* Frontend: React 19, Next.js 15, Redux, TailwindCSS
+* Backend: Java 25 (Spring Boot 3.5.1)
